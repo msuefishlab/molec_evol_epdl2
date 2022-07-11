@@ -1,0 +1,34 @@
+#activate conda environment
+conda activate nanopack
+
+# create text document to store read counts before and after
+echo -e barcode'\t'reads_before'\t'reads_after > Q14_primerstrimmed_totals_before_after.txt
+
+# list with input files
+files=(input__trimmed_reads/barcode*)
+
+# total files - 1 (for loop purposes)
+last=$((${#files[@]} - 1))
+
+for i in $(seq 0 $last)
+do
+
+file=${files[$i]}
+barcode=${file##*/}
+barcode=${barcode%%__*}
+outname=${barcode}__PrimerTrimmed_Qfilt14_SizeFilt.fastq
+
+#filter by quality and size
+# length = min. read length to filter
+NanoFilt --length 1200 --maxlength 2400 -q 14 ${file} > ./output_Q14/${outname}
+
+#count files before and after
+tot_bef=$(wc -l ${file} | awk '{print $1/4}')
+tot_af=$(wc -l ./output_Q14/${outname} | awk '{print $1/4}')
+#store the count values
+echo -e ${barcode}'\t'${tot_bef}'\t'${tot_af} >> Q14_primerstrimmed_totals_before_after.txt
+
+done
+
+#deactivate environment
+conda deactivate
