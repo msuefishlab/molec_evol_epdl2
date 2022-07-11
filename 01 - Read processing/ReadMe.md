@@ -29,7 +29,7 @@ We subjected the extracted amplicons to one additional round of size (1200-2400 
 
 4 - Quality control
 
-
+We generated quality control summaries and plots. The code provided 
 
 
 We used the resulting amplicons as inputs for the next goal of our pipeline: Identification of epdl2 genes
