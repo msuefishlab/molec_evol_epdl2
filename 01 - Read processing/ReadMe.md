@@ -23,3 +23,13 @@ extract_amplicons.sh has the actual code we wrote to select the smallest amplico
 
 
 3 - Extracted amplicons: size & quality filtering
+
+We subjected the extracted amplicons to one additional round of size (1200-2400 bp) and quality (Q > 14) filtering.<br/><br/>
+
+
+4 - Quality control
+
+
+
+
+We used the resulting amplicons as inputs for the next goal of our pipeline: Identification of epdl2 genes
