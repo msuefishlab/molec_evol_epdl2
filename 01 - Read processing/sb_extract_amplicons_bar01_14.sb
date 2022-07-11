@@ -1,0 +1,44 @@
+#!/bin/bash -login
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=2G
+#SBATCH --time=40:00:00
+#SBATCH -C [intel14-xl|intel16|intel16-xl|intel18|amd20]
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --job-name amplicons
+#SBATCH --array 0-13
+
+
+# move the session to the working directory 
+cd ${SLURM_SUBMIT_DIR}
+
+
+#define barcode to use
+y=$(expr ${SLURM_ARRAY_TASK_ID} + 1)
+
+if [[ $y -lt 10 ]]
+then
+    barcode=barcode0${y}
+else
+    barcode=barcode${y}
+fi
+
+# find variables for this barcode
+primer_pair_name=$(grep "$barcode" guide.table.tsv | awk '{ print $3 }')
+primer_file=$(grep "$barcode" guide.table.tsv | awk '{ print $4 }')
+size_threshold=1000
+input_fastq=$(grep "$barcode" guide.table.tsv | awk '{ print $5 }')
+input_fastq=input__trimmed_reads_from_Guppy/${input_fastq}
+
+# create and output directory 
+mkdir -p ${barcode}
+
+# run the code
+bash extract_amplicons.sh ${primer_pair_name} ${primer_file} ${size_threshold} ${input_fastq} ${barcode}
+
+
+## monitor run and resources
+# write job information to SLURM output file
+scontrol show job ${SLURM_JOB_ID}
+# write resource usage to SLURM output file (powetools command)
+js -j ${SLURM_JOB_ID}
