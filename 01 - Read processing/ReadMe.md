@@ -1,5 +1,6 @@
-This folder explains how we processed the sequencing reads. A general explanation is given in this file, and the code used is provided in additional files in this folder.
-
+This folder explains how we processed the sequencing reads. This file serves as a general guideline. It has sections sorted by execution order, and we provide the code used in each section in independent files. The naming convention for these code files is that they begin with the same number as the section they belong to.
+&nbsp;
+&nbsp;
 We started with the reads base-called and quality-filtered (Q > 7) by the ONT sequencing pipeline (high accuracy model from Guppy 4.2.3+f90bd04)
 
 
