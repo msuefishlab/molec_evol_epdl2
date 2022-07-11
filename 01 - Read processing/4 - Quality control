@@ -1,0 +1,22 @@
+# activate the environment
+conda activate nanopack
+
+files=(barcode*)
+
+# total files - 1 (for loop purposes)
+last=$((${#files[@]} - 1))
+
+for i in $(seq 0 $last)
+do
+
+file=${files[$i]}
+barcode=${file%__*}
+
+mkdir -p ../../../../02_Quality_control/04_Nanoplot/04d_primertrimmed_filtered_Q14/${barcode}
+
+NanoPlot -t 4 -o ../../../../02_Quality_control/04_Nanoplot/04d_primertrimmed_filtered_Q14/${barcode}--N50 --fastq ${file} -p ${barcode}__
+
+done
+
+# deactivate environment:
+conda deactivate
