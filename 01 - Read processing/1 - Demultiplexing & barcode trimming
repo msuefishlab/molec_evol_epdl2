@@ -1,0 +1,1 @@
+guppy_barcoder -t 4 --input_path ./fastq_pass/ --save_path ./Guppy_trimm_barcodes/ --config configuration.cfg --recursive --records_per_fastq 0 --barcode_kits "EXP-NBD104 EXP-NBD114" --trim_barcodes
