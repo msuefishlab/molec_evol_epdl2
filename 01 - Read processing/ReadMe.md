@@ -29,7 +29,7 @@ We subjected the extracted amplicons to one additional round of size (1200-2400 
 
 4 - Quality control
 
-We generated quality control summaries and plots. The code provided refers to the files obtained after section 3, but we performed this check on the starting reads and on the reads produced after every section. Each check used the same command as the one provided, with the respective input files and output folders.
+We generated quality control summaries and plots. The code provided refers to the files obtained after section 3, but we performed this check on the starting reads and on the reads produced after every section. Each check used the same command as the one provided, with the corresponding input files and output folders.<br/><br/>
 
 
 We used the resulting amplicons from section 3 as inputs for the next goal of our pipeline: Identification of epdl2 genes
