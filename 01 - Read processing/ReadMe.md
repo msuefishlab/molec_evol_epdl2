@@ -1,15 +1,15 @@
-This folder explains how we processed the sequencing reads. This file serves as a general guideline. It has sections sorted by execution order, and we provide the code used in each section in independent files. The naming convention for these code files is that they begin with the same number as the section they belong to.
-<br />
-<br />
-We started with the reads base-called and quality-filtered (Q > 7) by the ONT sequencing pipeline (high accuracy model from Guppy 4.2.3+f90bd04)
-&nbsp;
-&nbsp;
+This folder explains how we processed the sequencing reads. This file serves as a general guideline. It has sections sorted by execution order, and we provide the code used in each section in independent files. The naming convention for these code files is that they begin with the same number as the section they belong to.  
+
+
+We started with the reads base-called and quality-filtered (Q > 7) by the ONT sequencing pipeline (high accuracy model from Guppy 4.2.3+f90bd04) <br/><br/>
+
+
 1 - Demultiplexing & barcode trimming: 
 
 We demultiplexed and removed barcodes from the reads following: https://community.nanoporetech.com/docs/prepare/library_prep_protocols/Guppy-protocol/v/gpb_2003_v1_revae_14dec2018/barcoding-demultiplexing
 The resulting reads were uploaded to the NCBI SRA
-&amp;nbsp;
-&amp;nbsp;
+
+
 2 - Amplicon extraction: 
 
 We used the code in this section to extract the smallest amplicon greater than 1000 bp from each read
