@@ -94,13 +94,13 @@ best_amp=none
 		then
 
 			# this code: 1) finds the fastq read, 2) RCs it, 3) trims where indicated, and 4) appends the fastq amplicon to the output file
-			seqkit grep -p $id $input_fastq | seqkit seq -t dna -w 0 -r -p -v | NanoFilt_Mau --headcrop $h --tailcrop $t >> ${output}
+			seqkit grep -p $id $input_fastq | seqkit seq -t dna -w 0 -r -p -v | NanoFilt --headcrop $h --tailcrop $t >> ${output}
 
 		# if the read is in the + strand, do the same as above, without the RC. 
 		elif [ $strand == '+' ]
 		then
 
-			seqkit grep -p $id $input_fastq | NanoFilt_Mau --headcrop $h --tailcrop $t >> ${output}
+			seqkit grep -p $id $input_fastq | NanoFilt --headcrop $h --tailcrop $t >> ${output}
 
 		fi
 
@@ -142,13 +142,13 @@ best_amp=none
 		then
 
 			# this code: 1) finds the fastq read, 2) RCs it, 3) trims where indicated, and 4) appends the fastq amplicon to the output file
-			seqkit grep -p $id $input_fastq | seqkit seq -t dna -w 0 -r -p -v | NanoFilt_Mau --headcrop $h --tailcrop $t >> ${output}
+			seqkit grep -p $id $input_fastq | seqkit seq -t dna -w 0 -r -p -v | NanoFilt --headcrop $h --tailcrop $t >> ${output}
 
 		# if the read is in the + strand, do the same as above, without the RC. 
 		elif [ $strand == '+' ]
 		then
 
-			seqkit grep -p $id $input_fastq | NanoFilt_Mau --headcrop $h --tailcrop $t >> ${output}
+			seqkit grep -p $id $input_fastq | NanoFilt --headcrop $h --tailcrop $t >> ${output}
 
 		fi
 
