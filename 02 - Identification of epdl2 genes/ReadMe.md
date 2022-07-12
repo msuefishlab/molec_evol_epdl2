@@ -14,4 +14,4 @@ The goal of this section of to generate, for every barcode, a consensus sequence
 
 Each of the sb_medaka_c*.sb scripts contains the code used in this section. The only difference between these scripts is the input files used for each barcode: each script runs on the fasta files of every supported cluster obtained with the c value specified in the script’s name.<br/><br/>
 
-The consensus files of interest were later analized with Geneious for overclustering
+The consensus sequences of interest were later analized with Geneious for overclustering
