@@ -12,6 +12,6 @@ The script sb_cdhit.sb runs cdhit on the amplicons from every barcode, with all 
 
 The goal of this section of to generate, for every barcode, a consensus sequence for every supported cluster obtained with its chosen cd-hit’s c value. We found it programmatically easier to generate consensus sequences for all supported clusters from all c values, and then focus on those of interest.
 
-Each of the sb_medaka_c*.sb scripts contains the code used in this section. The only difference between these scripts is the input files used for each barcode: each script runs on the fasta files of every supported cluster obtained with the c value specified in the script’s name.
+Each of the sb_medaka_c*.sb scripts contains the code used in this section. The only difference between these scripts is the input files used for each barcode: each script runs on the fasta files of every supported cluster obtained with the c value specified in the script’s name.<br/><br/>
 
 The consensus files of interest were later analized with Geneious for overclustering
