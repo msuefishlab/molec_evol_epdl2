@@ -1,0 +1,75 @@
+#!/bin/bash -login
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=4G
+#SBATCH --time=00:30:00
+#SBATCH --job-name medaka
+#SBATCH --array 0-23
+
+
+## state the c value to use on this script
+c=0.89
+
+
+##prep things
+
+# move the session to the working directory 
+cd ${SLURM_SUBMIT_DIR}/
+
+
+#define barcode to use
+y=$(expr ${SLURM_ARRAY_TASK_ID} + 1)
+
+if [[ $y -lt 10 ]]
+then
+    barcode=barcode0${y}
+else
+    barcode=barcode${y}
+fi
+
+
+# make folder for input reads
+mkdir -p input_clusters_from_cdhit/${barcode}/c_${c}
+
+# create variable for input folder
+input=input_clusters_from_cdhit/${barcode}/c_${c}
+
+#make folder for Medaka output
+mkdir -p out_Medaka/${barcode}/c_${c}
+
+# create variable for Medaka output folder
+medaka_out=out_Medaka/${barcode}/c_${c}
+
+# create variable for the final out filename for this barcode and c-value
+final_out=${barcode}_c${c}__all_consensuses.fasta
+
+# copy desired input files
+rsync -a ../cdhit/real_runs/${barcode}/clusters*${c}/clusters_fastq/*fastq ./${input}
+
+
+## run Medaka
+
+# activate medaka environment
+conda activate medaka
+
+# run medaka smolec on each of the clusters
+for i in ${input}/*
+do 
+    cluster=${i%.fastq}
+    cluster=${cluster##*/}
+    medaka smolecule ${i} output ${medaka_out}/${cluster} --model r941_min_high_g360 --chunk_len 1000 --chunk_ovlp 500 --depth 50 --save_features --threads 8
+done
+
+# deactivate medaka environment
+conda deactivate
+
+
+## save all consensuses in a fasta file 
+cat ${medaka_out}/cluster*/consensus.fasta > out_consensuses/${final_out}
+
+
+## monitor run and resources
+# write job information to SLURM output file
+scontrol show job ${SLURM_JOB_ID}
+# write resource usage to SLURM output file (powetools command)
+js -j ${SLURM_JOB_ID}
