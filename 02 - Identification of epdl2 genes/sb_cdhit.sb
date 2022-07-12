@@ -1,0 +1,149 @@
+#!/bin/bash -login
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=2G
+#SBATCH --time=00:30:00
+#SBATCH --job-name cdhit
+#SBATCH --array 0-23
+
+# move the session to the working directory 
+cd ${SLURM_SUBMIT_DIR}
+
+
+#define barcode to use
+y=$(expr ${SLURM_ARRAY_TASK_ID} + 1)
+
+if [[ $y -lt 10 ]]
+then
+    barcode=barcode0${y}
+else
+    barcode=barcode${y}
+fi
+
+#make dir for this barcode and enter it
+mkdir -p $barcode
+cd $barcode
+#copy the Rscript into this directory
+cp ../plot_cluster_distrib.R ./
+
+
+## define variables and needed files
+
+# Add headers to  a summary table file
+echo -en 'barcode''\t''parameters''\t''No_reads''\t''No_clusters''\t''min_reads_per_cluster''\t''No_clusters_over_min''\t''No_reads_kept''\t''reads_kept_%''\n' > ${barcode}_clustering_summary.tsv
+
+#file with input reads
+input_reads=../../input_reads_primerFilt_Q14/${barcode}__PrimerTrimmed_Qfilt14_SizeFilt.fastq
+
+# number of reads
+tot_reads=$(wc -l $input_reads | awk '{ print $1/4 }')
+#percentages  needed for table and bins: 3%, 10%, 20%, 30%, 40%, 50%
+p3=$(perl -w -e "use POSIX; print ceil(${tot_reads}*0.03), qq{\n}")
+p3_1=$(expr $p3 + 1)
+p10=$(perl -w -e "use POSIX; print ceil(${tot_reads}*0.1), qq{\n}")
+p10_1=$(expr $p10 + 1)
+p20=$(perl -w -e "use POSIX; print ceil(${tot_reads}*0.2), qq{\n}")
+p20_1=$(expr $p20 + 1)
+p30=$(perl -w -e "use POSIX; print ceil(${tot_reads}*0.3), qq{\n}")
+p30_1=$(expr $p30 + 1)
+p40=$(perl -w -e "use POSIX; print ceil(${tot_reads}*0.4), qq{\n}")
+p40_1=$(expr $p40 + 1)
+p50=$(perl -w -e "use POSIX; print ceil(${tot_reads}*0.5), qq{\n}")
+p50_1=$(expr $p50 + 1)
+
+# convert fastq input to fasta (needed downstream)
+bioawk -c fastx '{print ">"$name"\n"$seq}' $input_reads > input_reads.fasta
+
+
+## loop through the c values to test: c= 0.84-0.91 inclusive
+for c in $(seq 0.84 0.01 0.91)
+    do
+
+    #choose n. this is based on the value of c and cdhit's manual
+    if (( $(echo "$c == 0.84" | bc -l) ))
+    then
+        n=5
+    elif (( $(echo "$c <= 0.87" | bc -l) ))
+    then
+        n=6
+    elif (( $(echo "$c <= 0.89" | bc -l) ))
+    then
+        n=7
+    else 
+        n=8
+    fi
+
+    #set name for cdhit output
+    out=result_n${n}_c${c}
+
+    #run cdhit with variable n and c parameters
+    ~/MyPrograms/cd-hit-v4.8.1-2019-0228/cd-hit-est -i $input_reads -o $out -T 8 -M 0 -g 1 -d 0 -r 0 -b 2500 -sc 1 -sf 1 -G 0 -aS 0.9 -aL 0.9 -n $n -c $c
+
+    #save size dist, use my chosen bins
+    ~/MyPrograms/cd-hit-v4.8.1-2019-0228/plot_len1.pl ${out}.clstr \
+    1-$p3,$p3_1-$p10,$p10_1-$p20,$p20_1-$p30,$p30_1-$p40,$p40_1-$p50,$p50_1-$tot_reads \
+    1200-1600,1601-1800,1801-2000,2000-2400  > size_dist_n${n}_c${c}.tsv
+
+    #get number of clusters created from that table
+    tot_clust=$(grep -n 'Total' size_dist_n${n}_c${c}.tsv | awk '{print $3}')
+
+    #save as a variable the column with the No. of clusters. Delete the last value (this is the total #clusters). Change the header to the c_n values
+    #the following transformation is necessary because bash wouldn't let me declare the variable with a dot:
+    c1=$(echo "$c * 100" | bc -l | xargs printf "%.f")
+    declare "clust_c${c1}=$(cut -f3 size_dist_n${n}_c${c}.tsv | sed '$d' | sed "s/No. clstr/n${n}_c${c}/g")"
+
+
+    ## organize the clusters
+
+    # This command makes an output folder and then, for clusters with more than 10% of the reads ($p10), it creates a fasta file with all the sequences from each cluster. These created fasta files are named 0, 1, etc, after the cluster
+    ~/MyPrograms/cd-hit-v4.8.1-2019-0228/make_multi_seq.pl input_reads.fasta $out.clstr clusters_n${n}_${c} $p10
+
+    cd clusters_n${n}_${c}
+    # count how many clusters met the threshold
+    clust_kept=$(ls -1 | wc -l)
+
+    # count how many reads belong to the clusters kept
+    if (( $clust_kept == 1 ))
+    then
+        reads_kept=$(wc -l * | awk '{print $1/2}')
+    else
+        reads_kept=$(wc -l * | grep -n 'total' | awk '{print $2/2}')
+    fi
+    
+    # log the percentage of reads kept (one decimal)
+    percent_kept=$(awk -v a=$reads_kept -v b=$tot_reads 'BEGIN{ans=a/b*100; printf "%.1f\n", ans}')
+
+    #subset the original fastq with the ids of the reads in each cluster 
+    mkdir -p clusters_fastq
+    for file in $(seq 0 $(($clust_kept - 1))) 
+        do 
+        seqkit grep -f <(seqkit seq -nw 0 $file) ../$input_reads > clusters_fastq/cluster${file}.fastq
+    done
+
+    cd ..
+
+    # add values of interest from this run to the summary table
+    echo -en $barcode'\t'n${n}_c${c}'\t'$tot_reads'\t'$tot_clust'\t'$p10'\t'$clust_kept'\t'$reads_kept'\t'$percent_kept'\n' >> ${barcode}_clustering_summary.tsv
+
+done
+
+
+#set a variable with the bins of % of reads, as a column (must be invoked as "$bins")
+bins=$(echo "reads_pct 0-03 03-10 10-20 20-30 30-40 40-50 50-100" | tr ' ' '\n')
+
+#assemble the table with the data to plot, from the variables with the bins and No of clusters per bin per parameters used
+paste <(echo "$bins") <(echo "$clust_c84") <(echo "$clust_c85") <(echo "$clust_c86") <(echo "$clust_c87") <(echo "$clust_c88") <(echo "$clust_c89") <(echo "$clust_c90") <(echo "$clust_c91") > table_to_plot.tsv
+
+
+##plot in R
+module load GCC/9.3.0  OpenMPI/4.0.3
+module load R/4.0.3
+
+Rscript plot_cluster_distrib.R table_to_plot.tsv ${barcode}
+
+## monitor run and resources
+# write job information to SLURM output file
+scontrol show job ${SLURM_JOB_ID}
+# write resource usage to SLURM output file (powetools command)
+js -j ${SLURM_JOB_ID}
+
