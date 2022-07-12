@@ -1,4 +1,4 @@
-Analysis scripts and code for our research article: <insert ref>
+Analysis scripts and code for our research article: ***CITATION PENDING***
 
 This repository contains files with the code we used in our analysis.
 
